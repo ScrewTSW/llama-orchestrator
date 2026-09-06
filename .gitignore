@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+
+# Backups
+*.bak
+*.bak-*
+
+# Runtime data
+kv_cache/
+*.log
+
+# Agent memory/plans
+/docs/superpowers/
+
+# Local configuration (personal paths, model overrides)
+/config.yaml
+/config.yaml.local

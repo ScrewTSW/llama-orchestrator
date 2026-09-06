@@ -1,0 +1,102 @@
+# Orchestrator configuration — EXAMPLE
+# Copy to config.yaml and adjust:   cp config.example.yaml config.yaml
+# (The service also auto-creates a minimal config.yaml on first launch if missing.)
+
+host: "0.0.0.0"
+port: 58108
+
+# Path to llama-server binary (an ik_llama.cpp build is preferred — see README)
+llama_server_bin: "/path/to/llama.cpp/build/bin/llama-server"
+
+# Directory containing GGUF model files (scanned recursively)
+model_dir: "/path/to/models"
+
+# KV cache directory for session persistence
+kv_cache_dir: "/tmp/llama_kv_cache"
+
+# Internal port range for llama-server instances
+internal_port_start: 58120
+internal_port_end: 58199
+
+# Idle timeout in seconds — unload model after this period of inactivity
+idle_timeout: 300
+
+# Health-check timeout in seconds — how long to wait for a freshly spawned
+# llama-server to answer /health. Cold loads read the whole GGUF from disk, so
+# a large model on a cold page cache can take minutes. Per-model override:
+# `health_timeout` in model_overrides.
+health_timeout: 300
+
+# Maximum number of models loaded simultaneously (0 = unlimited)
+max_loaded_models: 1
+
+# Default max_tokens injected when client doesn't set one.
+# Prevents runaway generation from clients that omit max_tokens.
+# Accepts: integer (fixed), "ctx/N" (fraction of context), "none" (disabled)
+default_max_tokens: "ctx/4"
+
+# GPU VRAM management
+gpu:
+  # Total VRAM in MB (auto-detected from nvidia-smi if omitted)
+  # total_mb: 16311
+  # Reserved VRAM overhead in MB — never allocate into this margin (driver, desktop, etc.)
+  overhead_mb: 1024
+  # Additional safety margin in MB subtracted from available VRAM for calculations
+  safety_margin_mb: 512
+
+# Default llama-server arguments per instance
+defaults:
+  # GPU layers to offload (-1 = auto-calculate based on VRAM budget)
+  ngl: -1
+  # Context size (tokens) — 0 = auto-calculate max safe context per model
+  # Auto mode fills available VRAM for full-offload models, and defaults to
+  # 128K for partial-offload models (whose KV cache lives in system RAM)
+  ctx_size: 0
+  # KV cache placement strategy:
+  #   "auto" — VRAM for full-offload models, RAM for partial-offload
+  #   "ram"  — always system RAM → maximizes context (up to model native limit)
+  #   "vram" — always VRAM → fastest attention but limits context window
+  kv_location: auto
+  # Parallel request slots
+  parallel: 1
+  # Flash attention
+  flash_attn: true
+  # KV cache quantization — K cache is more sensitive to quantization than V
+  # q8_0/q4_0 is the best tradeoff for agentic workloads: near-lossless K, aggressive V
+  # Allowed: f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1
+  # Blackwell (CC 12.0): q8_0/q4_0 KV kernels fall back to CPU, causing
+  # 96 graph splits per token. Use f16 until CUDA kernels are updated.
+  cache_type_k: q8_0
+  cache_type_v: q4_0
+  # Prompt caching and KV reuse — critical for agentic clients that repeat system prompts
+  cache_reuse: 256
+  # Context shifting for long conversations that exceed context window
+  # (maps to --context-shift; default true). Set false to disable.
+  context_shift: true
+
+# Per-model overrides (keyed by model alias or filename stem)
+# Use --autoconf or --register to generate these automatically.
+# Supported keys: ctx_size, ngl, kv_location, n_gpu_layers_kv,
+#   parallel, flash_attn, cache_type_k, cache_type_v, cache_reuse,
+#   context_shift, fit_target, embeddings, default_max_tokens, idle_timeout,
+#   health_timeout, threads, temp, top_p, top_k,
+#   merge_roles (merge consecutive same-role messages for strict templates),
+#   jinja, chat_template_file, chat_template_kwargs (dict),
+#   reasoning_format, reasoning (on|off|auto), reasoning_budget (N, -1=unrestricted,
+#   0=end immediately), reasoning_budget_message,
+#   min_max_tokens, stop, rope_scaling, no_mmap
+model_overrides: {}
+#
+# Examples:
+#   "Some-9B.Q6_K":
+#     ctx_size: 65536
+#     kv_location: vram
+#   "Big-27B.Q5_K_M":
+#     ngl: 44
+#     kv_location: ram
+#     n_gpu_layers_kv: 16
+#   "Reasoner-14B.Q4_K_M":
+#     reasoning_format: deepseek-legacy
+#     merge_roles: true
+#     jinja: true
+#     chat_template_file: /path/to/orchestrator/templates/qwen3.jinja

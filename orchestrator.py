@@ -407,6 +407,22 @@ class Orchestrator:
         if yarn_orig_ctx is not None:
             cmd.extend(["--yarn-orig-ctx", str(yarn_orig_ctx)])
 
+        # MTP speculative decoding
+        mtp_cfg = cfg.get("mtp", {})
+        if mtp_cfg.get("enabled", False):
+            cmd.extend(["--spec-type", "draft-mtp"])
+            if "draft_n_max" in mtp_cfg:
+                cmd.extend(["--spec-draft-n-max", str(mtp_cfg["draft_n_max"])])
+            if "draft_p_min" in mtp_cfg:
+                cmd.extend(["--spec-draft-p-min", str(mtp_cfg["draft_p_min"])])
+            if mtp_cfg.get("requantize_output"):
+                cmd.extend(["--mtp-requantize-output-tensor", mtp_cfg["requantize_output"]])
+
+        # Generic extra args escape hatch
+        extra_args = cfg.get("extra_args")
+        if extra_args:
+            cmd.extend(extra_args)
+
         instance.is_hybrid = is_hybrid
         return cmd
 

@@ -73,6 +73,16 @@ defaults:
   # Context shifting for long conversations that exceed context window
   # (maps to --context-shift; default true). Set false to disable.
   context_shift: true
+  # Multi-token prediction (MTP) speculative decoding
+  mtp:
+    enabled: false
+    draft_n_max: 2
+    draft_p_min: 0.0
+    # requantize_output: null  # Optional ik_llama.cpp feature
+  # Generic escape hatch: append arbitrary llama-server args
+  # extra_args:
+  #   - "--custom-flag"
+  #   - "value"
 
 # Per-model overrides (keyed by model alias or filename stem)
 # Use --autoconf or --register to generate these automatically.
@@ -84,7 +94,9 @@ defaults:
 #   jinja, chat_template_file, chat_template_kwargs (dict),
 #   reasoning_format, reasoning (on|off|auto), reasoning_budget (N, -1=unrestricted,
 #   0=end immediately), reasoning_budget_message,
-#   min_max_tokens, stop, rope_scaling, no_mmap
+#   min_max_tokens, stop, rope_scaling, no_mmap,
+#   mtp (dict: enabled, draft_n_max, draft_p_min, requantize_output),
+#   extra_args (list of strings)
 model_overrides: {}
 #
 # Examples:
@@ -100,3 +112,8 @@ model_overrides: {}
 #     merge_roles: true
 #     jinja: true
 #     chat_template_file: /path/to/orchestrator/templates/qwen3.jinja
+#   "MTP-Model-IQ4_XS":
+#     mtp:
+#       enabled: true
+#       draft_n_max: 2
+#       draft_p_min: 0.0

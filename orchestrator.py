@@ -407,14 +407,12 @@ class Orchestrator:
         if yarn_orig_ctx is not None:
             cmd.extend(["--yarn-orig-ctx", str(yarn_orig_ctx)])
 
-        # MTP speculative decoding
+        # MTP speculative decoding (ik_llama.cpp unified format)
         mtp_cfg = cfg.get("mtp", {})
         if mtp_cfg.get("enabled", False):
-            cmd.extend(["--spec-type", "draft-mtp"])
-            if "draft_n_max" in mtp_cfg:
-                cmd.extend(["--spec-draft-n-max", str(mtp_cfg["draft_n_max"])])
-            if "draft_p_min" in mtp_cfg:
-                cmd.extend(["--spec-draft-p-min", str(mtp_cfg["draft_p_min"])])
+            n_max = mtp_cfg.get("draft_n_max", 2)
+            p_min = mtp_cfg.get("draft_p_min", 0.0)
+            cmd.extend(["--spec-type", f"mtp:n_max={n_max},p_min={p_min}"])
             if mtp_cfg.get("requantize_output"):
                 cmd.extend(["--mtp-requantize-output-tensor", mtp_cfg["requantize_output"]])
 

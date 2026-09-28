@@ -134,6 +134,14 @@ class Orchestrator:
         """
         info = self._get_gguf_info(model_path)
         model_size_mb = model_path.stat().st_size / (1024 ** 2)
+        # Include split MTP draft model in VRAM budget
+        mtp_cfg = cfg.get("mtp", {})
+        if mtp_cfg.get("enabled") and mtp_cfg.get("draft_model"):
+            draft_path = Path(mtp_cfg["draft_model"])
+            if not draft_path.is_absolute():
+                draft_path = self.model_dir / draft_path
+            if draft_path.exists():
+                model_size_mb += draft_path.stat().st_size / (1024 ** 2)
         ctk = cfg.get("cache_type_k", "f16")
         ctv = cfg.get("cache_type_v", "f16")
         configured_ngl = cfg.get("ngl", -1)

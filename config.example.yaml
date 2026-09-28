@@ -79,6 +79,10 @@ defaults:
     draft_n_max: 2
     draft_p_min: 0.0
     # requantize_output: null  # Optional ik_llama.cpp feature
+    # Separate MTP head model file (for split-head architectures)
+    # draft_model: "mtp-head-model.gguf"
+  # Multimodal projector (vision models)
+  # mmproj: "mmproj-model.gguf"
   # Generic escape hatch: append arbitrary llama-server args
   # extra_args:
   #   - "--custom-flag"
@@ -95,7 +99,8 @@ defaults:
 #   reasoning_format, reasoning (on|off|auto), reasoning_budget (N, -1=unrestricted,
 #   0=end immediately), reasoning_budget_message,
 #   min_max_tokens, stop, rope_scaling, no_mmap,
-#   mtp (dict: enabled, draft_n_max, draft_p_min, requantize_output),
+#   mtp (dict: enabled, draft_n_max, draft_p_min, requantize_output, draft_model),
+#   mmproj (path to projector model for vision),
 #   extra_args (list of strings)
 model_overrides: {}
 #
@@ -117,3 +122,9 @@ model_overrides: {}
 #       enabled: true
 #       draft_n_max: 2
 #       draft_p_min: 0.0
+#   "Vision-Model":
+#     mmproj: "mmproj-vision-model.gguf"
+#   "Split-MTP-Model":
+#     mtp:
+#       enabled: true
+#       draft_model: "mtp-head-split.gguf"
